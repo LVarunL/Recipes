@@ -4,141 +4,37 @@ from config import DevConfig
 from models import Recipe, User
 from exts import db
 from flask_migrate import Migrate
-from werkzeug.security import generate_password_hash, check_password_hash
+from auth import auth_ns
+from recipes import recipe_ns
+from flask_jwt_extended import JWTManager
 
-app = Flask(__name__)
-app.config.from_object(DevConfig)
+def create_app(config):
 
-db.init_app(app)
+    app = Flask(__name__)
+    app.config.from_object(config)
 
-migrate = Migrate(app, db)
+    db.init_app(app)
 
-api = Api(app,doc='/docs')
+    migrate = Migrate(app, db)
+    JWTManager(app)
 
-#model serializer
-recipe_model = api.model(
-    'Recipe',
-    {
-        'id':fields.Integer(required=True,description='Recipe ID'),
-        'title':fields.String(required=True,description='Recipe Title'),
-        'description':fields.String(required=True,description='Recipe Description')
-    }
-)
+    api = Api(app,doc='/docs')
 
+    api.add_namespace(auth_ns)
+    api.add_namespace(recipe_ns)
 
-signup_model = api.model(
-    'Signup',
-    {
-        'username':fields.String(required=True,description='User name'),
-        'email':fields.String(required=True,description='Email address'),
-        'password':fields.String(required=True,description='Password')
-    }
-)
-
-# @app.before_first_request
-# def create_tables():
-#     db.create_all()
-
-
-@api.route('/hello')
-class HelloResource(Resource):
-    def get(self):
-        return {'message':'Miss Me?'}
-
-@api.route('/signup')
-class SignUp(Resource):
-    @api.expect(signup_model)
-    def post(self):
-        data = request.get_json()
+    @app.shell_context_processor
+    def make_shell_context():
+        return {
+            'db':db,
+            'Recipe':Recipe,
+            'User':User 
+        }
         
-        username = data.get('username')
-        db_user = User.query.filter_by(username=username).first()
-        if db_user is not None:
-            return jsonify({"message":f"user with username {username} already exists"}) 
-
-        new_user = User(
-            username=data.get('username'),
-            email=data.get('email'),
-            password=generate_password_hash(data.get('password'))
-        )
-
-        new_user.save()
-
-        return jsonify({"message":"User created successfully"})
-
-@api.route('/login')
-class Login(Resource):
-    def post(self):
-        pass
-
-@api.route('/recipes')
-class RecipesResource(Resource):
-
-    @api.marshal_list_with(recipe_model)
-    def get(self):
-        """get all the recipes"""
-        recipes = Recipe.query.all()
-
-        return recipes
-
-    @api.marshal_with(recipe_model)
-    @api.expect(recipe_model)
-    def post(self):
-        """create a new recipe"""
-        data = request.get_json()
-
-        new_recipe = Recipe(
-            title=data.get('title'),
-            description=data.get('description')
-        )
-
-        new_recipe.save()
-
-        return new_recipe,201
-
-@api.route('/recipe/<int:id>')
-class RecipeResource(Resource):
-
-    @api.marshal_with(recipe_model)
-    def get(self,id):
-        """get a recipe by id"""
-        recipe = Recipe.query.get_or_404(id)
-
-        return recipe
-    
-    @api.marshal_with(recipe_model)
-    def put(self,id):
-        """update a recipe by id"""
-        recipe_to_update = Recipe.query.get_or_404(id)
-
-        data = request.get_json()
-
-        recipe_to_update.update(data.get('title'),data.get('description'))
-
-        return recipe_to_update
-
-    @api.marshal_with(recipe_model)
-    def delete(self,id):
-        """delete a recipe by id"""
-        recipe_to_delete = Recipe.query.get_or_404(id)
-        
-        recipe_to_delete.delete()
-
-        return recipe_to_delete
 
 
-@app.shell_context_processor
-def make_shell_context():
-    return {
-        'db':db,
-        'Recipe':Recipe
-    }
-    
+    with app.app_context():
+        db.create_all()
 
 
-with app.app_context():
-    db.create_all()
-
-
-if __name__ == '__main__':
-    app.run()
+    return app

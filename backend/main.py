@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_restx import Api, Resource, fields
 from config import DevConfig
-from models import Recipe
+from models import Recipe, User
 from exts import db
 from flask_migrate import Migrate
 
@@ -23,6 +23,12 @@ recipe_model = api.model(
         'description':fields.String(required=True,description='Recipe Description')
     }
 )
+
+
+# @app.before_first_request
+# def create_tables():
+#     db.create_all()
+
 
 @api.route('/hello')
 class HelloResource(Resource):
@@ -92,6 +98,9 @@ def make_shell_context():
     }
     
 
+
+with app.app_context():
+    db.create_all()
 
 
 if __name__ == '__main__':

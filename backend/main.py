@@ -8,6 +8,7 @@ from flask_migrate import Migrate
 from auth import auth_ns
 from recipes import recipe_ns
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 def create_app(config):
 
@@ -16,6 +17,7 @@ def create_app(config):
 
     app.config.from_object(config)
 
+    CORS(app)
     
     db.init_app(app)
 

@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { useForm } from 'react-hook-form'
 
 const Login = () => {
+
+    const {register, handleSubmit, watch, formState:{errors}} = useForm();
 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
   
-    const submitForm = () => {
-      console.log("Form submission");
-      setUsername('')
-      setPassword('')
+    const loginUser = () => {
+      
     };
     return (
         <div className="Login">
@@ -22,12 +23,16 @@ const Login = () => {
             <Form.Control
               type="text"
               placeholder="Enter Username"
-              value={username}
-              name="username"
-              onChange={(e) => {
-                setUsername(e.target.value);
-              }}
+              {...register('username',{required: true,maxLength:25})}
             />
+            {errors.username?.type === "required" && (
+              <span style={{ color: "red" }}>Username is required</span>
+            )}
+            {errors.username?.type === "maxLength" && (
+              <span style={{ color: "red" }}>
+                Username must be under 25 characters
+              </span>
+            )}
           </Form.Group>
           
           <Form.Group>
@@ -35,16 +40,20 @@ const Login = () => {
             <Form.Control
               type="password"
               placeholder="Enter Password"
-              value={password}
-              name="password"
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
+              {...register('password',{required: true,minLength:8})}
             />
+            {errors.password?.type === "required" && (
+              <span style={{ color: "red" }}>Password is required</span>
+            )}
+            {errors.password?.type === "minLength" && (
+              <span style={{ color: "red" }}>
+                Password must be at least 8 characters long
+              </span>
+            )}
           </Form.Group>
           
           <Form.Group>
-            <Button as="sub" variant="primary" onClick={submitForm}>
+            <Button as="sub" variant="primary" onClick={handleSubmit(loginUser)}>
               Login
             </Button>
           </Form.Group>

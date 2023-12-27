@@ -1,17 +1,38 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useForm } from 'react-hook-form'
-
+import {login} from './auth'
 const Login = () => {
 
-    const {register, handleSubmit, watch, formState:{errors}} = useForm();
+    const navigate = useNavigate();
+    const {register, handleSubmit, watch,reset, formState:{errors}} = useForm();
 
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+    // const [username, setUsername] = useState("");
+    // const [password, setPassword] = useState("");
   
-    const loginUser = () => {
-      
+    const loginUser = (data) => {
+      console.log(data);
+
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }
+
+      fetch('http://localhost:5000/auth/login',requestOptions)
+      .then(res=>res.json())
+      .then(data=>{
+        console.log(data.access_token);
+        login(data.access_token)
+        navigate('/')
+      })
+
+
+      reset();
     };
     return (
         <div className="Login">

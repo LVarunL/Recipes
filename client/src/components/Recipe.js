@@ -1,11 +1,16 @@
 import React from 'react';
-
-const Recipe = ({title,description}) => {
+import {Card, Modal, Button} from 'react-bootstrap'
+const Recipe = ({title,description,onClick,onDelete}) => {
     return (
-        <div className='recipe'>
-            <h3>{title}</h3>
-            <p>{description}</p>
-        </div>
+        <Card className='recipe'>
+            <Card.Body>
+                <Card.Title>{title}</Card.Title>
+                <p>{description}</p>
+                <Button variant="primary" onClick={onClick}> Update </Button>
+                {' '}
+                <Button variant="danger" onClick={onDelete}> Delete </Button>
+            </Card.Body>
+        </Card>
     )
 }
 export default Recipe;
